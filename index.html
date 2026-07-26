@@ -101,7 +101,7 @@
       <h2>Đăng ký JABI21</h2>
       <p class="sub">Điền thông tin, thanh toán 199.000đ và tham gia nhóm Zalo JABI21.</p>
       <div class="form-grid">
-        <form id="regForm">
+        <form id="regForm" method="post" action="javascript:void(0);">
           <label>Họ và tên phụ huynh *</label>
           <input name="hoTen" required placeholder="Nguyễn Thị...">
 
@@ -160,52 +160,106 @@
   <div class="sticky"><a class="cta" href="#dangky">ĐĂNG KÝ JABI21 – 199.000đ</a></div>
 
 <script>
-  // Dán URL Web App của Google Apps Script sau khi triển khai:
-  https://script.google.com/macros/s/AKfycbyWy0Ifchwpw6_QVNT9Z-oHVYRsTx0Lp1nj1O9rxi_0mSBRf6t3HyEKiQhFt4IeRqID/exec
+document.addEventListener("DOMContentLoaded", function () {
+  const WEB_APP_URL =
+    "https://script.google.com/macros/s/AKfycbwNoTlHAKyroz3IGeeCWdmIZRQHPzPToZASiqjlb_0K06mmzHKlrySeaW-3uKdWrB1j/exec";
 
   const form = document.getElementById("regForm");
   const payment = document.getElementById("payment");
   const statusBox = document.getElementById("status");
   const transferNote = document.getElementById("transferNote");
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const data = Object.fromEntries(new FormData(form).entries());
-    const shortName = (data.hoTen || "").trim().split(/\s+/).slice(-2).join(" ").toUpperCase();
-    const last4 = (data.soDienThoai || "").replace(/\D/g,"").slice(-4);
-    transferNote.textContent = `JABI21 ${shortName} ${last4}`;
+  if (!form) {
+    console.error("Không tìm thấy form regForm");
+    return;
+  }
+
+  form.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const formData = new FormData(form);
+
+    const data = {
+      hoTen: formData.get("hoTen") || "",
+      soDienThoai: formData.get("soDienThoai") || "",
+      email: formData.get("email") || "",
+      doTuoiCon: formData.get("doTuoiCon") || "",
+      khoKhan: formData.get("khoKhan") || ""
+    };
+
+    const nameParts = data.hoTen.trim().split(/\s+/);
+    const shortName = nameParts.slice(-2).join(" ").toUpperCase();
+
+    const phoneNumbers = data.soDienThoai.replace(/\D/g, "");
+    const last4 = phoneNumbers.slice(-4);
+
+    transferNote.textContent =
+      "JABI21 " + shortName + " " + last4;
 
     statusBox.textContent = "Đang ghi nhận đăng ký...";
+
     try {
-      if (!WEB_APP_URL.startsWith("http")) {
-        throw new Error("Chưa cấu hình URL Google Apps Script");
+      if (!WEB_APP_URL.startsWith("https://script.google.com/")) {
+        throw new Error("Chưa cấu hình đúng Web App URL");
       }
-      const res = await fetch(WEB_APP_URL, {
+
+      await fetch(WEB_APP_URL, {
         method: "POST",
         mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8"
+        },
         body: JSON.stringify(data)
       });
-      statusBox.textContent = "Đã ghi nhận đăng ký. Vui lòng hoàn tất thanh toán.";
-    } catch (err) {
-      statusBox.textContent = "Thông tin đã được giữ trên trang. Vui lòng tiếp tục thanh toán.";
-      localStorage.setItem("jabi21_pending", JSON.stringify(data));
-    }
-    payment.classList.add("show");
-    payment.scrollIntoView({behavior:"smooth",block:"start"});
-  });
 
-  document.querySelectorAll("[data-copy]").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      await navigator.clipboard.writeText(btn.dataset.copy);
-      const t = btn.textContent; btn.textContent = "Đã chép";
-      setTimeout(()=>btn.textContent=t,1200);
+      statusBox.textContent =
+        "Đã ghi nhận đăng ký. Vui lòng chuyển khoản 199.000đ.";
+
+    } catch (error) {
+      console.error(error);
+
+      statusBox.textContent =
+        "Đã nhận thông tin trên trang. Vui lòng tiếp tục thanh toán.";
+    }
+
+    payment.classList.add("show");
+
+    payment.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
     });
   });
-  document.getElementById("copyNote").addEventListener("click", async () => {
-    await navigator.clipboard.writeText(transferNote.textContent);
-    alert("Đã sao chép nội dung chuyển khoản.");
+
+  document.querySelectorAll("[data-copy]").forEach(function (button) {
+    button.addEventListener("click", function (event) {
+      event.preventDefault();
+
+      navigator.clipboard.writeText(button.dataset.copy)
+        .then(function () {
+          const oldText = button.textContent;
+          button.textContent = "Đã chép";
+
+          setTimeout(function () {
+            button.textContent = oldText;
+          }, 1200);
+        });
+    });
   });
+
+  const copyNoteButton = document.getElementById("copyNote");
+
+  if (copyNoteButton) {
+    copyNoteButton.addEventListener("click", function (event) {
+      event.preventDefault();
+
+      navigator.clipboard.writeText(transferNote.textContent)
+        .then(function () {
+          alert("Đã sao chép nội dung chuyển khoản.");
+        });
+    });
+  }
+});
 </script>
 </body>
 </html>
