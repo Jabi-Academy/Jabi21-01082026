@@ -124,7 +124,7 @@
           <label>Điều khó khăn nhất hiện nay</label>
           <textarea name="khoKhan" placeholder="Ví dụ: con mê điện thoại, khó trò chuyện, thiếu mục tiêu..."></textarea>
 
-          <button class="cta" type="submit" style="width:100%">GỬI ĐĂNG KÝ & THANH TOÁN</button>
+          <button class="cta" type="submit" style="width:100%">XÁC NHẬN ĐĂNG KÝ – NHẬN MÃ THANH TOÁN</button>
           <div class="status" id="status"></div>
         </form>
 
@@ -142,7 +142,8 @@
 
           <div class="qr">
             <h3>Quét mã QR để chuyển khoản</h3>
-            <<<img
+            <img
+            id="vietqr"
             src="https://img.vietqr.io/image/TCB-05082006-print.png?amount=199000&addInfo=JABI21"
             alt="QR chuyển khoản Techcombank"
             style="max-width:320px;width:100%;border-radius:12px;">
@@ -171,6 +172,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const payment = document.getElementById("payment");
   const statusBox = document.getElementById("status");
   const transferNote = document.getElementById("transferNote");
+  const vietqr = document.getElementById("vietqr");
 
   if (!form) {
     console.error("Không tìm thấy form regForm");
@@ -199,6 +201,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     transferNote.textContent =
       "JABI21 " + shortName + " " + last4;
+    const paymentContent = transferNote.textContent;
+
+    vietqr.src =
+    "https://img.vietqr.io/image/TCB-05082006-print.png" +
+    "?amount=199000" +
+    "&addInfo=" + encodeURIComponent(paymentContent) +
+    "&accountName=" +
+    encodeURIComponent("TRUNG TAM TU VAN TAM LY GIAO DUC TRE EM");
 
     statusBox.textContent = "Đang ghi nhận đăng ký...";
 
